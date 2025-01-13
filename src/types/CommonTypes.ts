@@ -8,7 +8,8 @@ export type ChargeSimulationInput = {
 export type ChargeSimulationOutput = {
 	totalEnergy: number;
 	peakPower: number;
-	chargeEvents: number;
+	chargeEvents: { day: number; week: number; month: number; year: number };
+	powerPerChargePoint: number;
 };
 
 export type TableRowData = {
@@ -16,3 +17,14 @@ export type TableRowData = {
 	value?: number | string | null;
 	unit: string;
 };
+
+export type FormErrors = {
+	chargePoints?: string;
+	multiplier?: string;
+	consumption?: string;
+	power?: string;
+};
+
+export type Period = 'day' | 'week' | 'month' | 'year';
+
+export type BarChartData = { category: string; value: number };

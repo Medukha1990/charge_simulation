@@ -1,4 +1,5 @@
 import { AgCharts } from 'ag-charts-react';
+import { AgChartOptions } from 'ag-charts-community';
 
 const ChartComponent = ({ data }: { data: number[][] }) => {
 	const aggregatedData = data[0].map((_, hour) =>
@@ -10,9 +11,7 @@ const ChartComponent = ({ data }: { data: number[][] }) => {
 		consumption: value,
 	}));
 
-	console.log({ chartData });
-
-	const chartOptions: any = {
+	const chartOptions: AgChartOptions = {
 		data: chartData,
 		title: {
 			text: 'Hourly Power Consumption',
@@ -45,7 +44,7 @@ const ChartComponent = ({ data }: { data: number[][] }) => {
 	};
 
 	return (
-		<div style={{ width: '100%', height: '400px' }}>
+		<div style={{ width: '100%', height: '280px' }}>
 			<AgCharts options={chartOptions} />
 		</div>
 	);

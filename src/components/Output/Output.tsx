@@ -1,8 +1,14 @@
-import { Titles, Units } from '../../constants/Units';
-import { ChargeSimulationOutput, TableRowData } from '../../types/CommonTypes';
+import { Titles, Units } from '../../constants';
+import {
+	ChargeSimulationOutput,
+	Period,
+	TableRowData,
+} from '../../types/CommonTypes';
+import { calculateAggregatedPower } from '../../utils';
 
 type Props = {
 	data: ChargeSimulationOutput | null;
+	period: Period;
 };
 
 const TableRow = ({ label, value, unit }: TableRowData) => {
@@ -17,7 +23,17 @@ const TableRow = ({ label, value, unit }: TableRowData) => {
 	);
 };
 
-const Output = ({ data }: Props) => {
+const Output = ({ data, period }: Props) => {
+	if (!data) return null;
+
+	const chargeEvents = data.chargeEvents[period];
+
+	const aggregatedPower = calculateAggregatedPower(
+		chargeEvents,
+		data.powerPerChargePoint,
+		period,
+	);
+
 	return (
 		<div>
 			<h2 className='font-bold my-2'>Simulation Results:</h2>
@@ -38,18 +54,23 @@ const Output = ({ data }: Props) => {
 				<tbody>
 					<TableRow
 						label={Titles.TOTAL_ENERGY}
-						value={data?.totalEnergy}
+						value={data.totalEnergy}
 						unit={Units.ENERGY}
 					/>
 					<TableRow
 						label={Titles.PEAK_POWER}
-						value={data?.peakPower}
+						value={data.peakPower}
 						unit={Units.POWER}
 					/>
 					<TableRow
 						label={Titles.CHARGE_EVENT}
-						value={data?.chargeEvents}
+						value={chargeEvents}
 						unit={Units.COUNT}
+					/>
+					<TableRow
+						label={Titles.AGREGATED_PAWER}
+						value={aggregatedPower}
+						unit={Units.POWER}
 					/>
 				</tbody>
 			</table>
