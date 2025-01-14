@@ -1,5 +1,5 @@
 export type ChargeSimulationInput = {
-	chargePoints: number;
+	chargePoints: { count: number; power: number }[];
 	multiplier: number;
 	consumption: number;
 	power: number;

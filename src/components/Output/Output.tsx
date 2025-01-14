@@ -4,7 +4,7 @@ import {
 	Period,
 	TableRowData,
 } from '../../types/CommonTypes';
-import { calculateAggregatedPower } from '../../utils';
+import { calculateAggregatedPower } from '../../utils/utils';
 
 type Props = {
 	data: ChargeSimulationOutput | null;

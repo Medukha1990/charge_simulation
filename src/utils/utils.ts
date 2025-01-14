@@ -1,4 +1,4 @@
-import { ChargeSimulationInput, Period } from './types/CommonTypes';
+import { ChargeSimulationInput, Period } from '../types/CommonTypes';
 
 export const generateStaticDummyData = () => {
 	return [
@@ -16,14 +16,18 @@ export const generateStaticDummyData = () => {
 export const generateScaledData = (data: ChargeSimulationInput) => {
 	const staticData = generateStaticDummyData();
 
+	const totalChargePoints = data.chargePoints.reduce(
+		(acc, point) => acc + point.count * point.power,
+		0,
+	);
+
 	return staticData.map((dataArray) =>
 		dataArray.map(
 			(value) =>
 				value *
-				data.chargePoints *
+				totalChargePoints *
 				(data.consumption / 100) *
-				(data.multiplier / 100) *
-				data.power,
+				(data.multiplier / 100),
 		),
 	);
 };
@@ -59,15 +63,30 @@ export const calculateSimulationData = (
 	data: ChargeSimulationInput,
 	period: Period,
 ) => {
-	const totalEnergy =
-		data.chargePoints * data.consumption * (data.multiplier / 100);
-	const peakPower = data.chargePoints * data.power;
-	const powerPerChargePoint = data.power;
+	const totalEnergy = data.chargePoints.reduce(
+		(acc, point) =>
+			acc +
+			point.count *
+				point.power *
+				data.consumption *
+				(data.multiplier / 100),
+		0,
+	);
+
+	const peakPower = data.chargePoints.reduce(
+		(acc, point) => acc + point.count * point.power,
+		0,
+	);
+
 	const chargeEvents = {
-		day: data.chargePoints * 1,
-		week: data.chargePoints * 7,
-		month: data.chargePoints * 30,
-		year: data.chargePoints * 365,
+		day: data.chargePoints.reduce((acc, point) => acc + point.count, 0),
+		week:
+			data.chargePoints.reduce((acc, point) => acc + point.count, 0) * 7,
+		month:
+			data.chargePoints.reduce((acc, point) => acc + point.count, 0) * 30,
+		year:
+			data.chargePoints.reduce((acc, point) => acc + point.count, 0) *
+			365,
 	};
 
 	const periodMultiplier = {
@@ -83,11 +102,10 @@ export const calculateSimulationData = (
 	return {
 		totalEnergy: adjustedTotalEnergy,
 		peakPower: adjustedPeakPower,
-		chargeEvents: chargeEvents,
-		powerPerChargePoint: powerPerChargePoint,
+		chargeEvents,
+		powerPerChargePoint: peakPower / data.chargePoints.length,
 	};
 };
-
 export const transformToBarChartData = (chargeEvents: {
 	[key: string]: number;
 }): { category: string; value: number }[] => {

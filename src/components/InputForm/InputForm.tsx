@@ -4,8 +4,11 @@ import {
 	FormErrors,
 	Period,
 } from '../../types/CommonTypes';
-import { FIELD_NAMES, Units } from '../../constants';
+import { Units } from '../../constants';
 import PeriodSelector from '../PeriodSelector/PeriodSelector';
+import { validateForm } from '../../utils/validation';
+import InputField from './InputField';
+import ChargePointsList from './ChargePointsList';
 
 type Props = {
 	onSubmit: (data: ChargeSimulationInput) => void;
@@ -13,83 +16,59 @@ type Props = {
 	handlePeriodChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 };
 
-type FieldProps = {
-	label: string;
-	value: number;
-	unit: string;
-	error?: string;
-	onChange: (value: number) => void;
-};
-
-const InputField = ({ label, value, onChange, unit, error }: FieldProps) => (
-	<div className='flex justify-between my-2'>
-		<label>
-			{label} ({unit}):
-		</label>
-		<div className='flex flex-col'>
-			<input
-				type='number'
-				className='border border-gray-300 rounded px-2 py-1 w-56'
-				value={value}
-				onChange={(e) => onChange(+e.target.value)}
-			/>
-			{error && (
-				<span className='text-red-500 text-xs mx-1 mt-1'>{error}</span>
-			)}
-		</div>
-	</div>
-);
-
 const InputForm = ({ onSubmit, handlePeriodChange, period }: Props) => {
-	const [formData, setFormData] = useState({
-		[FIELD_NAMES.chargePoints]: 5,
-		[FIELD_NAMES.multiplier]: 100,
-		[FIELD_NAMES.consumption]: 18,
-		[FIELD_NAMES.power]: 11,
+	const [formData, setFormData] = useState<ChargeSimulationInput>({
+		chargePoints: [{ count: 1, power: 11 }],
+		multiplier: 100,
+		consumption: 18,
+		power: 11,
 	});
 
-	const [errors, setErrors] = useState<FormErrors>({
-		[FIELD_NAMES.chargePoints]: '',
-		[FIELD_NAMES.multiplier]: '',
-		[FIELD_NAMES.consumption]: '',
-		[FIELD_NAMES.power]: '',
-	});
+	const [errors, setErrors] = useState<FormErrors>({});
 
-	const validateForm = () => {
-		const newErrors: FormErrors = {};
-
-		if (formData.chargePoints < 1) {
-			newErrors.chargePoints = 'Value must be at least 1';
-		}
-
-		if (formData.multiplier < 20 || formData.multiplier > 200) {
-			newErrors.multiplier = 'Value must be between 20 and 200';
-		}
-
-		if (formData.consumption <= 0) {
-			newErrors.consumption = 'Value must be a positive number';
-		}
-
-		if (formData.power <= 0) {
-			newErrors.power = 'Value must be a positive number';
-		}
-		setErrors(newErrors);
-
-		return Object.keys(newErrors).length === 0;
+	const handleAddChargePoint = () => {
+		setFormData((prev) => ({
+			...prev,
+			chargePoints: [...prev.chargePoints, { count: 1, power: 11 }],
+		}));
 	};
 
-	const handleSubmit = (event: React.FormEvent) => {
-		event.preventDefault();
-		if (validateForm()) {
-			onSubmit(formData);
-		}
+	const handleChangeChargePoint = (
+		index: number,
+		field: 'count' | 'power',
+		value: number,
+	) => {
+		setFormData((prev) => {
+			const updatedChargePoints = [...prev.chargePoints];
+			updatedChargePoints[index][field] = value;
+			return { ...prev, chargePoints: updatedChargePoints };
+		});
 	};
 
-	const handleChange = (key: keyof typeof FIELD_NAMES, value: number) => {
+	const handleRemoveChargePoint = (index: number) => {
+		setFormData((prev) => ({
+			...prev,
+			chargePoints: prev.chargePoints.filter((_, i) => i !== index),
+		}));
+	};
+
+	const handleChange = (
+		key: keyof Omit<ChargeSimulationInput, 'chargePoints'>,
+		value: number,
+	) => {
 		setFormData((prevData) => ({
 			...prevData,
 			[key]: value,
 		}));
+	};
+
+	const handleSubmit = (event: React.FormEvent) => {
+		event.preventDefault();
+		const errors = validateForm(formData);
+		setErrors(errors);
+		if (Object.keys(errors).length === 0) {
+			onSubmit(formData);
+		}
 	};
 
 	return (
@@ -99,40 +78,26 @@ const InputForm = ({ onSubmit, handlePeriodChange, period }: Props) => {
 		>
 			<div className='w-3/6'>
 				<InputField
-					label='Charge Points'
-					value={formData.chargePoints}
-					onChange={(value) =>
-						handleChange(FIELD_NAMES.chargePoints, value)
-					}
-					unit={Units.COUNT}
-					error={errors.chargePoints}
-				/>
-				<InputField
 					label='Multiplier'
 					value={formData.multiplier}
-					onChange={(value) =>
-						handleChange(FIELD_NAMES.multiplier, value)
-					}
+					onChange={(value) => handleChange('multiplier', value)}
 					unit={Units.PERCENTAGE}
 					error={errors.multiplier}
 				/>
 				<InputField
 					label='Consumption'
 					value={formData.consumption}
-					onChange={(value) =>
-						handleChange(FIELD_NAMES.consumption, value)
-					}
+					onChange={(value) => handleChange('consumption', value)}
 					unit={Units.ENERGY}
 					error={errors.consumption}
 				/>
-				<InputField
-					label='Power per Charge Point'
-					value={formData.power}
-					onChange={(value) => handleChange(FIELD_NAMES.power, value)}
-					unit={Units.POWER}
-					error={errors.power}
-				/>
 			</div>
+			<ChargePointsList
+				chargePoints={formData.chargePoints}
+				onAdd={handleAddChargePoint}
+				onChange={handleChangeChargePoint}
+				onRemove={handleRemoveChargePoint}
+			/>
 			<div className='w-3/6 flex justify-between my-6'>
 				<div>
 					<PeriodSelector

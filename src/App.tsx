@@ -4,7 +4,7 @@ import {
 	calculateSimulationData,
 	generateScaledData,
 	transformToBarChartData,
-} from './utils';
+} from './utils/utils';
 import InputForm from './components/InputForm/InputForm';
 import Output from './components/Output/Output';
 import ChartComponent from './components/ChartComponent/ChartComponent';
